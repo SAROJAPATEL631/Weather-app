@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      gap: 40px;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card {
+      background: #f5faff;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      width: 280px;
+      text-align: center;
+    }
+
+    .card h2 {
+      margin-bottom: 15px;
+    }
+
+    .weather-icon {
+      width: 80px;
+      height: 80px;
+    }
+
+    input, button {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #f0f0f0;
+    }
+
+    button {
+      margin-top: 10px;
+    }
+
+    .loading {
+      font-size: 18px;
+      color: #555;
+    }
+
+    #errorMessage {
+      color: red;
+      font-size: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Weather Output Card -->
+    <div class="card">
+      <h2 id="city">Weather Info</h2>
+      <img id="icon" class="weather-icon" src="" alt="Weather Icon">
+      <h3 id="temp">--°C</h3>
+      <p id="condition">Condition: --</p>
+      <p id="wind">Wind: -- kph</p>
+      <p id="aqi">Air Quality: --</p>
+    </div>
+
+    <!-- Input for City Name -->
+    <div class="card">
+      <h2>Enter a City Name</h2>
+      <input type="text" id="cityInput" placeholder="Type city name here" />
+      <button onclick="getWeather()">Get Weather</button>
+      <p id="errorMessage">⚠️ Could not find weather for this location. Please try another city.</p>
+      <p class="loading" id="loadingMessage">Loading...</p>
+    </div>
+  </div>
+
+  <script>
+    async function getWeather() {
+      const city = document.getElementById("cityInput").value;
+      if (!city) {
+        alert("Please enter a city name.");
+        return;
+      }
+
+      const apiKey = "e1dd0a46771e4ac5a7e90239251804";
+      const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&aqi=yes`;
+
+      // Show loading message
+      document.getElementById("loadingMessage").style.display = 'block';
+      document.getElementById("errorMessage").style.display = 'none';
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error) {
+          // If city not found, show error message
+          document.getElementById("loadingMessage").style.display = 'none';
+          document.getElementById("errorMessage").style.display = 'block';
+          return;
+        }
+
+        // Update UI with weather info
+        document.getElementById("city").textContent = `Weather in ${data.location.name}`;
+        document.getElementById("icon").src = `https:${data.current.condition.icon}`;
+        document.getElementById("temp").textContent = `${data.current.temp_c}°C`;
+        document.getElementById("condition").textContent = `Condition: ${data.current.condition.text}`;
+        document.getElementById("wind").textContent = `Wind: ${data.current.wind_kph} kph`;
+
+        const pm25 = data.current.air_quality.pm2_5?.toFixed(2) ?? "--";
+        document.getElementById("aqi").textContent = `Air Quality: PM2.5 ${pm25}`;
+
+        // Hide loading message
+        document.getElementById("loadingMessage").style.display = 'none';
+      } catch (err) {
+        alert("🔌 Network or API error. Please check your internet or try again.");
+        console.error(err);
+        document.getElementById("loadingMessage").style.display = 'none';
+      }
+    }
+  </script>
+
+</body>
+</html>
